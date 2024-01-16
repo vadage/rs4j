@@ -7,6 +7,7 @@ import space.provided.rs.ops.Invokable;
 import space.provided.rs.ops.PlainInvokable;
 import space.provided.rs.result.Result;
 
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public final class Option<Some> {
@@ -36,83 +37,81 @@ public final class Option<Some> {
     }
 
     public boolean isSomeAnd(ArgInvokable<Some, Boolean> invokable) {
-        return switch (type) {
-            case NONE -> false;
-            case SOME -> invokable.invoke(some);
-        };
+        if (isNone()) {
+            return false;
+        }
+        return invokable.invoke(some);
     }
 
     public Some unwrap() throws ValueAccessError {
         if (!isSome()) {
-            throw new ValueAccessError("Called `unwrap` on %1$s Option.".formatted(type));
+            throw new ValueAccessError(String.format("Called `unwrap` on %1$s Option.", type));
         }
         return some;
     }
 
     public Some unwrapOr(Some fallback) {
-        return switch (type) {
-            case SOME -> some;
-            case NONE -> fallback;
-        };
+        if (isSome()) {
+            return some;
+        }
+        return fallback;
     }
 
     public <Mapped> Option<Mapped> map(ArgInvokable<Some, Mapped> invokable) {
-        return switch (type) {
-            case SOME -> Option.some(invokable.invoke(some));
-            case NONE -> Option.none();
-        };
+        if (isSome()) {
+            return Option.some(invokable.invoke(some));
+        }
+        return Option.none();
     }
 
     public <Mapped> Mapped mapOr(Mapped fallback, ArgInvokable<Some, Mapped> invokable) {
-        return switch (type) {
-            case SOME -> invokable.invoke(some);
-            case NONE -> fallback;
-        };
+        if (isSome()) {
+            return invokable.invoke(some);
+        }
+        return fallback;
     }
 
     public <Mapped> Mapped mapOrElse(PlainInvokable<Mapped> fallback, ArgInvokable<Some, Mapped> invokable) {
-        return switch (type) {
-            case SOME -> invokable.invoke(some);
-            case NONE -> fallback.invoke();
-        };
+        if (isSome()) {
+            return invokable.invoke(some);
+        }
+        return fallback.invoke();
     }
 
     public <Err> Result<Some, Err> okOr(Err error) {
-        return switch (type) {
-            case SOME -> (Result<Some, Err>) Result.ok(some);
-            case NONE -> Result.error(error);
-        };
+        if (isSome()) {
+            return Result.ok(some);
+        }
+        return Result.error(error);
     }
 
     public <Err> Result<Some, Err> okOrElse(PlainInvokable<Err> invokable) {
-        return switch (type) {
-            case SOME -> (Result<Some, Err>) Result.ok(some);
-            case NONE -> Result.error(invokable.invoke());
-        };
+        if (isSome()) {
+            return Result.ok(some);
+        }
+        return Result.error(invokable.invoke());
     }
 
     public Option<Some> andThen(ArgInvokable<Some, Option<Some>> invokable) {
-        return switch (type) {
-            case SOME -> invokable.invoke(some);
-            case NONE -> Option.none();
-        };
+        if (isSome()) {
+            return invokable.invoke(some);
+        }
+        return Option.none();
     }
 
     public Option<Some> andThenContinue(ArgVoidInvokable<Some> invokable) {
-        return switch (type) {
-            case SOME -> {
-                invokable.invoke(some);
-                yield Option.some(some);
-            }
-            case NONE -> Option.none();
-        };
+        if (isSome()) {
+            invokable.invoke(some);
+            return Option.some(some);
+        }
+        return Option.none();
     }
 
     public Option<Some> and(Option<Some> option) {
-        return switch (type) {
-            case SOME -> option;
-            case NONE -> Option.none();
-        };
+        if (isSome()) {
+            return option;
+        }
+        return Option.none();
     }
 
     public Option<Some> filter(Predicate<Some> predicate) {
@@ -123,26 +122,24 @@ public final class Option<Some> {
     }
 
     public Option<Some> or(Option<Some> option) {
-        return switch (type) {
-            case SOME -> Option.some(some);
-            case NONE -> option;
-        };
+        if (isSome()) {
+            return Option.some(some);
+        }
+        return option;
     }
 
     public Option<Some> orElse(PlainInvokable<Option<Some>> invokable) {
-        return switch (type) {
-            case SOME -> Option.some(some);
-            case NONE -> invokable.invoke();
-        };
+        if (isSome()) {
+            return Option.some(some);
+        }
+        return invokable.invoke();
     }
 
     public Option<Some> orElseContinue(Invokable invokable) {
-        return switch (type) {
-            case SOME -> Option.some(some);
-            case NONE -> {
-                invokable.invoke();
-                yield Option.none();
-            }
-        };
+        if (isSome()) {
+            return Option.some(some);
+        }
+        invokable.invoke();
+        return Option.none();
     }
 }

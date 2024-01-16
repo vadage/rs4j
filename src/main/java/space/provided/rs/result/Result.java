@@ -34,14 +34,14 @@ public final class Result<Ok, Error> {
 
     public Ok unwrap() throws ValueAccessError {
         if (!isOk()) {
-            throw new ValueAccessError("Called `unwrap` on %1$s Result.".formatted(type));
+            throw new ValueAccessError(String.format("Called `unwrap` on %1$s Result.", type));
         }
         return ok;
     }
 
     public Error unwrapError() throws ValueAccessError {
         if (!isError()) {
-            throw new ValueAccessError("Called `unwrapError` on %1$s Result.".formatted(type));
+            throw new ValueAccessError(String.format("Called `unwrapError` on %1$s Result.", type));
         }
         return error;
     }
@@ -51,10 +51,10 @@ public final class Result<Ok, Error> {
     }
 
     public boolean isOkAnd(ArgInvokable<Ok, Boolean> invokable) {
-        return switch (type) {
-            case ERROR -> false;
-            case OK -> invokable.invoke(ok);
-        };
+        if (isError()) {
+            return false;
+        }
+        return invokable.invoke(ok);
     }
 
     public boolean isError() {
@@ -62,85 +62,81 @@ public final class Result<Ok, Error> {
     }
 
     public boolean isErrorAnd(ArgInvokable<Error, Boolean> invokable) {
-        return switch (type) {
-            case OK -> false;
-            case ERROR -> invokable.invoke(error);
-        };
+        if (isOk()) {
+            return false;
+        }
+        return invokable.invoke(error);
     }
 
     public <Mapped> Result<Mapped, Error> map(ArgInvokable<Ok, Mapped> invokable) {
-        return switch (type) {
-            case OK -> Result.ok(invokable.invoke(ok));
-            case ERROR -> Result.error(error);
-        };
+        if (isOk()) {
+            return Result.ok(invokable.invoke(ok));
+        }
+        return Result.error(error);
     }
 
     public <Mapped> Mapped mapOr(Mapped fallback, ArgInvokable<Ok, Mapped> invokable) {
-        return switch (type) {
-            case OK -> invokable.invoke(ok);
-            case ERROR -> fallback;
-        };
+        if (isOk()) {
+            return invokable.invoke(ok);
+        }
+        return fallback;
     }
 
     public <Mapped> Mapped mapOrElse(ArgInvokable<Error, Mapped> fallback, ArgInvokable<Ok, Mapped> invokable) {
-        return switch (type) {
-            case OK -> invokable.invoke(ok);
-            case ERROR -> fallback.invoke(error);
-        };
+        if (isOk()) {
+            return invokable.invoke(ok);
+        }
+        return fallback.invoke(error);
     }
 
     public Result<Ok, Error> and(Result<Ok, Error> result) {
-        return switch (type) {
-            case OK -> result;
-            case ERROR -> Result.error(error);
-        };
+        if (isOk()) {
+            return result;
+        }
+        return Result.error(error);
     }
 
     public Result<Ok, Error> andThen(ArgInvokable<Ok, Result<Ok, Error>> invokable) {
-        return switch (type) {
-            case OK -> invokable.invoke(ok);
-            case ERROR -> Result.error(error);
-        };
+        if (isOk()) {
+            return invokable.invoke(ok);
+        }
+        return Result.error(error);
     }
 
     public Result<Ok, Error> andThenContinue(ArgVoidInvokable<Ok> invokable) {
-        return switch (type) {
-            case OK -> {
-                invokable.invoke(ok);
-                yield Result.ok(ok);
-            }
-            case ERROR -> Result.error(error);
-        };
+        if (isOk()) {
+            invokable.invoke(ok);
+            return Result.ok(ok);
+        }
+        return Result.error(error);
     }
 
     public Result<Ok, Error> or(Result<Ok, Error> result) {
-        return switch (type) {
-            case OK -> Result.ok(ok);
-            case ERROR -> result;
-        };
+        if (isOk()) {
+            return Result.ok(ok);
+        }
+        return result;
     }
 
     public Result<Ok, Error> orElse(ArgInvokable<Error, Result<Ok, Error>> invokable) {
-        return switch (type) {
-            case OK -> Result.ok(ok);
-            case ERROR -> invokable.invoke(error);
-        };
+        if (isOk()) {
+            return Result.ok(ok);
+        }
+        return invokable.invoke(error);
     }
 
     public Result<Ok, Error> orElseContinue(ArgVoidInvokable<Error> invokable) {
-        return switch (type) {
-            case OK -> Result.ok(ok);
-            case ERROR -> {
-                invokable.invoke(error);
-                yield Result.error(error);
-            }
-        };
+        if (isOk()) {
+            return Result.ok(ok);
+        }
+        invokable.invoke(error);
+        return Result.error(error);
     }
 
     public Ok unwrapOrElse(ArgInvokable<Error, Ok> invokable) {
-        return switch (type) {
-            case OK -> ok;
-            case ERROR -> invokable.invoke(error);
-        };
+        if (isOk()) {
+            return ok;
+        }
+        return invokable.invoke(error);
     }
 }
