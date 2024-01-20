@@ -6,6 +6,38 @@ This leads to fewer non-logic bugs in production and the code might look cleaner
 The rs4j library is written in pure Java and has just *adapted* some concepts, which are also used in Rust. The method names are kept similar (snake_case to camelCase) for developers using both languages.<br>
 There are some additional wrapper methods, such as `andThenContinue()` in both `Result` and `Option` to get rid of return statements. A new instance will then be returned automatically.
 
+## Installation
+
+### Gradle
+```groovy
+repositories {
+    maven { url 'https://registry.provided.space' }
+}
+
+dependencies {
+    implementation 'space.provided:rs4j:TAG'
+}
+```
+
+### Maven
+```xml
+<repositories>
+    <repository>
+        <id>provided</id>
+        <name>provided.space</name>
+        <url>https://registry.provided.space</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>space.provided</groupId>
+        <artifactId>rs4j</artifactId>
+        <version>TAG</version>
+    </dependency>
+</dependencies>
+```
+
 ## Exceptionless
 Java has two types of Exceptions; `checked` and `unchecked`. Unchecked Exceptions don't have to be declared to be thrown in a method, which increases the likelihood of them not being handled.<br>
 This is where `Result`s come in handy with their representation of `Ok` and `Error`. Calling `unwrap` on `Error` or `unwrapError` on `Ok` will lead to a `ValueAccessError`.
@@ -17,7 +49,7 @@ if (userResult.isOk()) {
 }
 ```
 
-## No NULL
+## Null safety
 It's not always obvious if a method always returns an object or if it could be null as well.<br>
 Instead of `null`, an `Option` can be used, which represents one of two states (`Some` and `None`). Calling `unwrap` on `None` will lead to a `ValueAccessError`.
 ```java
